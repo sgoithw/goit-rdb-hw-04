@@ -1,0 +1,159 @@
+#TASK 1
+create schema LibraryManagement collate utf8_general_ci;
+
+create table LibraryManagement.authors
+(
+    author_id   int auto_increment primary key,
+    author_name varchar(100) not null
+);
+
+create table LibraryManagement.genres
+(
+    genre_id   int auto_increment primary key,
+    genre_name varchar(100) not null
+);
+
+create table LibraryManagement.books
+(
+    book_id          int auto_increment primary key,
+    title            varchar(255) not null,
+    publication_year year         not null,
+    author_id        int          not null,
+    genre_id         int          not null,
+    foreign key (author_id) references authors (author_id) on delete cascade on update cascade,
+    foreign key (genre_id) references genres (genre_id) on delete cascade on update cascade
+);
+
+create table LibraryManagement.users
+(
+    user_id  int auto_increment primary key,
+    username varchar(255) not null,
+    email    varchar(255) not null
+);
+
+
+create table LibraryManagement.borrowed_books
+(
+    borrow_id   int auto_increment primary key,
+    book_id     int  not null,
+    user_id     int  not null,
+    borrow_date date not null,
+    return_date date not null,
+    foreign key (book_id) references books (book_id) on delete cascade on update cascade,
+    foreign key (user_id) references users (user_id) on delete cascade on update cascade
+);
+
+#TASK 2
+insert into LibraryManagement.authors (author_name)
+values ('Daniel Nichter'),
+       ('Charles Bell'),
+       ('Mats Kindahl'),
+       ('Lars Thalmann');
+insert into LibraryManagement.genres (genre_name)
+values ('Technical manual'),
+       ('Science'),
+       ('Fantasy');
+insert into LibraryManagement.books (title, publication_year, author_id, genre_id)
+values ('Efficient MySQL Performance', 2021, 1, 1),
+       ('MySQL High Availability: Tools for Building Robust Data Centers', 2014, 2, 1);
+insert into LibraryManagement.users (username, email)
+values ('Mats Kindahl', 'matt@gmail.com'),
+       ('Lars Thalmann', 'lars@gmail.com');
+insert into LibraryManagement.borrowed_books (book_id, user_id, borrow_date, return_date)
+values (1, 1, '2021-01-01', '2021-01-31'),
+       (1, 2, '2021-02-01', '2021-02-28');
+
+#TASK 3
+select *
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         inner join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+
+
+#TASK 4
+select count(*)
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         inner join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+
+
+
+select count(*)
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+         right join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         left join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id;
+#Тут отримуємо більше рядків, оскільки в результат додаються ті юзери що не робили замовлення.
+#Так як right join додає всі рядки з таблиці customers навіть якщо немає відповідних в звязаній таблиці.
+
+select *
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+         right join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         left join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+WHERE ord.employee_id > 3
+  and ord.employee_id <= 10
+
+
+select ctgrs.name as category_name, COUNT(*) as count, AVG(ord_det.quantity) as avg_order_quantity
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+         inner join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         inner join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+GROUP BY ctgrs.name;
+
+select ctgrs.name as category_name, COUNT(*) as count, AVG(ord_det.quantity) as avg_order_quantity
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+         inner join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         inner join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+GROUP BY ctgrs.name HAVING avg_order_quantity > 21;
+
+select ctgrs.name as category_name, COUNT(*) as count, AVG(ord_det.quantity) as avg_order_quantity
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+         inner join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         inner join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+GROUP BY ctgrs.name HAVING avg_order_quantity > 21 ORDER BY count DESC;
+
+
+select ctgrs.name as category_name, COUNT(*) as count, AVG(ord_det.quantity) as avg_order_quantity
+from `db-hw2`.orders as ord
+         inner join `db-hw2`.order_details as ord_det on ord.id = ord_det.order_id
+         inner join `db-hw2`.products as prdcts on ord_det.product_id = prdcts.id
+         inner join `db-hw2`.shippers as shprs on ord.shipper_id = shprs.id
+         inner join `db-hw2`.suppliers as splrs on prdcts.supplier_id = splrs.id
+         inner join `db-hw2`.categories as ctgrs on prdcts.category_id = ctgrs.id
+         inner join `db-hw2`.customers as cstmrs on ord.customer_id = cstmrs.id
+         inner join `db-hw2`.employees as empls on ord.employee_id = empls.employee_id
+GROUP BY ctgrs.name HAVING avg_order_quantity > 21 ORDER BY count DESC LIMIT 4 OFFSET 1;
